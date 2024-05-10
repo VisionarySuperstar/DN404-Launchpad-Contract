@@ -88,7 +88,9 @@ interface IMyDN404{
     function setStatTime(uint256 value) external;
     function setEndTime(uint256 value) external;
     function setLockupTime(uint256 value) external;
-    function withdrawToken(uint amount) external;
+    function withdrawToken() external;
+    function withdrawFromBuyers() external ;
+    function finish() external ;
     function setAllOfSettings(
         SaleOption _saleOption, 
         uint256 _preSalePrice, 
@@ -101,10 +103,8 @@ interface IMyDN404{
         uint256 _minBuy, 
         uint256 _maxBuy, 
         bool _refundType, 
-        uint256 _liquidityPercent, 
-        uint256 _listingPrice, 
         uint256 _startTime, 
         uint256 _endTime, 
-        uint256 _lockupTime, string memory baseURI) external ;
+        string memory baseURI, uint256 _taxForSell) external ;
 }
 

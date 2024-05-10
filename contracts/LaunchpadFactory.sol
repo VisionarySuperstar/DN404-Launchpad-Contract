@@ -72,16 +72,13 @@ contract LaunchpadFactory {
     mapping(uint256 => address) public tokenAddress ;
     mapping(address => uint256) public idForToken ;
     uint256 currentTokenNumber ;
-    event setWalletsEvent(address _marketingAddress, address _developerAddress);
-    event setFeesEvent(uint256 _creatingFee, uint256 _burnFee, uint256 _taxForDeveloper, 
-        uint256 _taxForMarketing, uint256 _taxForSell, uint256 _taxForBuy, uint _swapFee) ;
-    event createTokenEvent(string _name, string _symbol, uint256 _totalSupply);
-    event withdrawEvent(address from, uint256 amount) ;
     // Modifier
     modifier onlyOwner(){
         require(LaunchpadFactoryStorage.ownerAddress == msg.sender, "Only owner can set wallet addresses for Launchpad Factory") ;
         _;
     }
+    event creationToken(string name, string symbol, uint256 totalSupply, address newDeployedAddress) ;
+
 
     // Constrcutor
     constructor(address _implementation){
@@ -107,7 +104,6 @@ contract LaunchpadFactory {
         currentTokenNumber = 0 ;
         LaunchpadFactoryStorage.earningsForMarketing = 0 ;
         LaunchpadFactoryStorage.earningsForDeveloper = 0 ;
-        emit setWalletsEvent(_marketingAddress, _developerAddress) ;
     }
 
     // Set the fees 
@@ -120,7 +116,6 @@ contract LaunchpadFactory {
         LaunchpadFactoryStorage.taxForSell = _taxForSell ;
         LaunchpadFactoryStorage.taxForBuy = _taxForBuy ;
         LaunchpadFactoryStorage.swapFee = _swapFee ; 
-        emit setFeesEvent(_creatingFee, _burnFee, _taxForDeveloper, _taxForMarketing, _taxForSell, _taxForBuy, _swapFee);
         return true ;
     }
     
@@ -130,8 +125,6 @@ contract LaunchpadFactory {
         uint256 amount = msg.value ;
         require(amount >= LaunchpadFactoryStorage.creatingFee, "The amount sent is not enough to create a Launchpad") ;
         address newDeployedAddress = Clones.clone(implementation) ;
-        console.log("newDeployedAddress: %s", newDeployedAddress) ;
-        console.log("msg.sender: %s", msg.sender) ;
         bytes memory ownerAddressData = abi.encode(msg.sender) ;
         
         IMyDN404(newDeployedAddress).initialize(_name, _symbol, _totalSupply, ownerAddressData);        
@@ -142,7 +135,7 @@ contract LaunchpadFactory {
         }
         tokenAddress[currentTokenNumber] = newDeployedAddress ;
         idForToken[newDeployedAddress] = currentTokenNumber ;
-        emit createTokenEvent(_name, _symbol, _totalSupply);
+        emit creationToken(_name, _symbol, _totalSupply, newDeployedAddress);
     }
     
 
@@ -163,7 +156,7 @@ contract LaunchpadFactory {
         uint256 amount = LaunchpadFactoryStorage.amountForDeveloper ;
         LaunchpadFactoryStorage.amountForDeveloper = 0;
         if(amount > 0)payable (LaunchpadFactoryStorage.developerAddress).transfer(amount);
-        emit withdrawEvent(msg.sender, amount);
+        
     }
 
     // Withdraw for Marketing
@@ -175,7 +168,7 @@ contract LaunchpadFactory {
         uint256 amount = LaunchpadFactoryStorage.amountForMarketing;  
         LaunchpadFactoryStorage.amountForMarketing = 0;
         if(amount > 0) payable (LaunchpadFactoryStorage.marketingAddress).transfer(amount);
-        emit withdrawEvent(msg.sender, amount);
+        
     }
     
     // Returns total number of tokens
